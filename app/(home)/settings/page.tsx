@@ -8,9 +8,7 @@ const Settings = async () => {
 
   const authenticatedUser = await auth();
 
-  if (authenticatedUser ) {
-    redirect("/");
-  }
+
 
   const subscriptionDetails = await getNextPaymentDetails();
   const isPremium = await isUserPremium();
