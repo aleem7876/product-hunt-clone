@@ -6,10 +6,6 @@ import { redirect } from "next/navigation";
 
 const Settings = async () => {
 
-  const authenticatedUser = await auth();
-
-
-
   const subscriptionDetails = await getNextPaymentDetails();
   const isPremium = await isUserPremium();
   return (
