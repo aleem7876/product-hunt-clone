@@ -1,4 +1,5 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import MembershipModal from "../ui/modals/upgrade-membership-modal";
@@ -23,6 +24,7 @@ const Submit: React.FC<SubmitProps> = ({ products, authenticatedUser }) => {
       router.push("/new-product");
     }
   };
+
   return (
     <div>
       <button onClick={handleClick} className="text-[#ff6154]">
@@ -32,9 +34,7 @@ const Submit: React.FC<SubmitProps> = ({ products, authenticatedUser }) => {
         visible={isUpgradeModalVisible}
         setVisible={setIsUpgradeModalVisible}
       >
-        <UpgradeMembership 
-          authenticatedUser={authenticatedUser}
-        />
+        <UpgradeMembership authenticatedUser={authenticatedUser} />
       </MembershipModal>
     </div>
   );
