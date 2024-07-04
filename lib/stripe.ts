@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
-const priceId = "price_1PY3NAEzB013hamQCrqIwNrq";
+const priceId =  "price_1PYmwaEzB013hamQY4X6NTpP";
 
 // Create a function to generate a checkout link
 export const createCheckoutSession = async ({ email }: { email: string }) => {
