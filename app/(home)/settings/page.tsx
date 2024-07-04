@@ -1,8 +1,17 @@
 import { isUserPremium } from "@/lib/server-actions";
 import ManageBilling from "./manage-billing";
 import { getNextPaymentDetails } from "@/lib/stripe";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 const Settings = async () => {
+
+  const authenticatedUser = await auth();
+
+  if (authenticatedUser ) {
+    redirect("/");
+  }
+
   const subscriptionDetails = await getNextPaymentDetails();
   const isPremium = await isUserPremium();
   return (

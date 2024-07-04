@@ -1,8 +1,16 @@
+import { auth } from "@/auth";
 import { getUpvotedProducts } from "@/lib/server-actions";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 const MyUpvotedProducts = async () => {
+
+  const authenticatedUser = await auth();
+
+  if (authenticatedUser ) {
+    redirect("/");
+  }
   const products = await getUpvotedProducts();
 
   return (
