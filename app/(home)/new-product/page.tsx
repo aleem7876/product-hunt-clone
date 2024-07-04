@@ -1,7 +1,7 @@
 "use client";
 
-import { LogoUploader } from "@/components/logo-uploader";
 import { ImagesUploader } from "@/components/images-uploader";
+import { LogoUploader } from "@/components/logo-uploader";
 import Image from "next/image";
 import React, { useCallback, useState } from "react";
 
@@ -11,6 +11,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -19,7 +20,6 @@ import {
   PiDiscordLogoFill,
   PiPlanet,
   PiTwitterLogoFill,
-  PiXCircle,
   PiXCircleFill,
 } from "react-icons/pi";
 import { Separator } from "@/components/ui/separator";
@@ -61,18 +61,20 @@ const NewProduct = () => {
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [headline, setHeadline] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [website, setWebsite] = useState("");
   const [twitter, setTwitter] = useState("");
   const [discord, setDiscord] = useState("");
 
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+
   const [uploadedLogoUrl, setUploadedLogoUrl] = useState<string>("");
+
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [uploadedProductImages, setUploadedProductImages] = useState<string[]>(
     []
   );
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
 
   const handleHeadlineChange = (e: any) => {
     const headlineText = e.target.value.slice(0, 70);
@@ -100,7 +102,7 @@ const NewProduct = () => {
     const truncatedName = productName.slice(0, 30);
     setName(truncatedName);
 
-    // Create slug from product name
+    //create slug from product name
 
     const slugValue = truncatedName
       .toLowerCase()
@@ -131,13 +133,18 @@ const NewProduct = () => {
     if (step === 1 && name.length < 4) {
       toast(
         <>
-          <div className="flex items-center gap-4 mx-auto">
+          <div className="flex items-center gap-4  mx-auto">
             <PiXCircleFill className="text-red-500 text-3xl" />
-            <div>Please enter at least 4 characters for the product name</div>
+            <div className="text-md font-semibold">
+              Please enter at least 4 characters for the product name.
+            </div>
           </div>
         </>,
-        { position : "top-center"}
-      )
+        {
+          position: "top-center",
+        }
+      );
+
       return;
     }
 
@@ -275,6 +282,8 @@ const NewProduct = () => {
   ]);
 
 
+
+
   const prevStep = useCallback(() => {
     setStep(step - 1);
   }, [step]);
@@ -300,10 +309,10 @@ const NewProduct = () => {
 
   const submitProduct = async () => {
     setLoading(true);
-    const fomattedDate = date ? format(date, "MM/dd/yyyy") : "";
+    const formattedDate = date ? format(date, "MM/dd/yyyy") : "";
 
     try {
-      await createProduct ({
+      await createProduct({
         name,
         slug,
         headline,
@@ -312,7 +321,7 @@ const NewProduct = () => {
         discord,
         description: shortDescription,
         logo: uploadedLogoUrl,
-        releaseDate: fomattedDate,
+        releaseDate: formattedDate,
         images: uploadedProductImages,
         category: selectedCategories,
       });
@@ -321,29 +330,32 @@ const NewProduct = () => {
       console.log(error);
       setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex items-center justify-center py-8 md:py-20">
       <div className="px-8 md:w-3/5 md:mx-auto">
         {step === 1 && (
           <motion.div 
-           initial={{ opacity: 0, x: "100%" }} // Slide in from the right
-           animate={{ opacity: 1, x: 0 }} // Slide to the center
-           exit={{ opacity: 0, x: "-100%" }} // Slide out to the left
-           transition={{ duration: 0.3 }}
+          initial={{ opacity: 0, x: "100%" }} // Slide in from the right
+          animate={{ opacity: 1, x: 0 }} // Slide to the center
+          exit={{ opacity: 0, x: "-100%" }} // Slide out to the left
+          transition={{ duration: 0.3 }}
+
+
           
-           className="space-y-10">
-            <h1 className="text-4xl font-semibold"> 📦 New Product</h1>
+          className="space-y-10">
+            <h1 className="text-4xl font-semibold"> 📦 New product</h1>
             <p className="text-xl font-light mt-4 leading-8">
-              Ready to showcase your product to the world?You came to the right
-              place. Follow the steps below to get started
+              Ready to showcase your product to the world? You came to the right
+              place. Follow the steps below to get started.
             </p>
+
             <div className="mt-10">
               <h2 className="font-medium">Name of the product</h2>
               <input
-                value={name}
                 type="text"
+                value={name}
                 maxLength={30}
                 className="border rounded-md p-2 w-full mt-2 focus:outline-none"
                 onChange={handleNameChange}
@@ -352,11 +364,13 @@ const NewProduct = () => {
                 {name.length} / 30
               </div>
             </div>
+
             <div className="mt-10">
               <h2 className="font-medium">
-                Slug (URL) - This will be used to create a unique URL for your
-                product
+                Slug (URL) - This will be used to create a unique URL for
+                yourproduct
               </h2>
+
               <input
                 type="text"
                 value={slug}
@@ -373,14 +387,14 @@ const NewProduct = () => {
           animate={{ opacity: 1, x: 0 }} // Slide to the center
           exit={{ opacity: 0, x: "-100%" }} // Slide out to the left
           transition={{ duration: 0.3 }}
-
-           className="space-y-10">
+          
+          className="space-y-10">
             <h1 className="text-4xl font-semibold">
               {" "}
               📊 What category does your product belong to ?{" "}
             </h1>
             <p className="text-xl font-light mt-4 leading-8">
-              Choose at least three categories that best fits your product.This
+              Choose at least 3 categories that best fits your product. This
               will people discover your product
             </p>
 
@@ -392,15 +406,15 @@ const NewProduct = () => {
                     key={index}
                     className="flex border rounded-full"
                     onClick={() => handleCategoryToggle(category)}
-                    whileTap={{ scale: 0.95}}
+                    whileTap={{ scale: 0.9 }}
                   >
                     <div
-                      className={`text-xs md:text-sm p-2 cursor-pointer w-full text-center 
-                                    ${
-                                      selectedCategories.includes(category)
-                                        ? "bg-[#ff6154] text-white rounded-full"
-                                        : "text-black"
-                                    }`}
+                      className={`text-xs md:text-sm p-2 cursor-pointer w-full text-center
+                     ${
+                       selectedCategories.includes(category)
+                         ? "bg-[#ff6154] text-white rounded-full"
+                         : "text-black"
+                     }`}
                     >
                       {category}
                     </div>
@@ -412,18 +426,19 @@ const NewProduct = () => {
         )}
 
         {step === 3 && (
-          <motion.div 
+          <motion.div
           initial={{ opacity: 0, x: "100%" }} // Slide in from the right
           animate={{ opacity: 1, x: 0 }} // Slide to the center
           exit={{ opacity: 0, x: "-100%" }} // Slide out to the left
           transition={{ duration: 0.3 }}
-
-           className="space-y-10">
-            <div className="text-4xl font-semibold"> 📝 Product Details</div>
+          
+          className="space-y-10">
+            <div className="text-4xl font-semibold">📝 Product Details</div>
             <p className="text-xl font-light mt-4 leading-8">
               Keep it simple and clear. Describe your product in a way that
               makes it easy for people to understand what it does.
             </p>
+
             <div className="mt-10">
               <h2 className="font-medium">Headline</h2>
               <input
@@ -442,13 +457,13 @@ const NewProduct = () => {
               <h2 className="font-medium">Short Description</h2>
               <textarea
                 className="border rounded-md p-2 w-full mt-2 focus:outline-none"
-                value={shortDescription}
                 rows={8}
                 maxLength={300}
+                value={shortDescription}
                 onChange={handleShortDescriptionChange}
               />
 
-              <div className="text-sm text-gray-500" mt-1>
+              <div className="text-sm text-gray-500 mt-1">
                 {shortDescription.length} / 300
               </div>
             </div>
@@ -457,11 +472,12 @@ const NewProduct = () => {
 
         {step === 4 && (
           <motion.div
-           initial={{ opacity: 0, x: "100%" }} // Slide in from the right
-           animate={{ opacity: 1, x: 0 }} // Slide to the center
-           exit={{ opacity: 0, x: "-100%" }} // Slide out to the left
-           transition={{ duration: 0.3 }}
-           className="space-y-10">
+          initial={{ opacity: 0, x: "100%" }} // Slide in from the right
+          animate={{ opacity: 1, x: 0 }} // Slide to the center
+          exit={{ opacity: 0, x: "-100%" }} // Slide out to the left
+          transition={{ duration: 0.3 }}
+          
+          className="space-y-10">
             <h1 className="text-4xl font-semibold">
               🖼️ Add images to showcase your product
             </h1>
@@ -488,45 +504,44 @@ const NewProduct = () => {
                   onChange={handleLogoUpload}
                 />
               )}
-
-              <div className="mt-4">
-                <div className="font-medium">
-                  Product Images (upload at least 3 images)
-                </div>
-                {uploadedProductImages.length > 0 ? (
-                  <div className="mt-2 md:flex gap-2 space-y-4 md:space-y-0">
-                    {uploadedProductImages.map((url, index) => (
-                      <div key={index} className="relative md:w-40 h-40">
-                        <Image
-                          priority
-                          src={url}
-                          alt="Uploaded Product Image"
-                          layout="fill"
-                          objectFit="cover"
-                          className="rounded-md"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <ImagesUploader
-                    endpoint="productImages"
-                    onChange={handleProductImagesUpload}
-                  />
-                )}
+            </div>
+            <div className="mt-4">
+              <div className="font-medium">
+                Product Images ( upload atleast 3 images )
               </div>
+              {uploadedProductImages.length > 0 ? (
+                <div className="mt-2 md:flex gap-2 space-y-4 md:space-y-0">
+                  {uploadedProductImages.map((url, index) => (
+                    <div key={index} className="relative  md:w-40 h-40 ">
+                      <Image
+                        priority
+                        src={url}
+                        alt="Uploaded Product Image"
+                        layout="fill"
+                        objectFit="cover"
+                        className="rounded-md"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <ImagesUploader
+                  endpoint="productImages"
+                  onChange={handleProductImagesUpload}
+                />
+              )}
             </div>
           </motion.div>
         )}
 
         {step === 5 && (
-          <motion.div 
-           initial={{ opacity: 0, x: "100%" }} // Slide in from the right
-           animate={{ opacity: 1, x: 0 }} // Slide to the center
-           exit={{ opacity: 0, x: "-100%" }} // Slide out to the left
-           transition={{ duration: 0.3 }}
+          <motion.div
+          initial={{ opacity: 0, x: "100%" }} // Slide in from the right
+          animate={{ opacity: 1, x: 0 }} // Slide to the center
+          exit={{ opacity: 0, x: "-100%" }} // Slide out to the left
+          transition={{ duration: 0.3 }}
           
-           className="space-y-10">
+          className="space-y-10">
             <h1 className="text-4xl font-semibold"> 🗓️ Release Date</h1>
             <p className="text-xl font-light mt-4 leading-8">
               When will your product be available to the public? Select a date
@@ -546,6 +561,7 @@ const NewProduct = () => {
                       )}
                     >
                       {date ? format(date, "PPP") : <span>Pick a date</span>}
+
                       <PiCalendar className="ml-auto h-4 w-4 opacity-50" />
                     </Button>
                   </PopoverTrigger>
@@ -566,13 +582,14 @@ const NewProduct = () => {
 
         {step === 6 && (
           <motion.div
-           initial={{ opacity: 0, x: "100%" }} // Slide in from the right
-           animate={{ opacity: 1, x: 0 }} // Slide to the center
-           exit={{ opacity: 0, x: "-100%" }} // Slide out to the left
-           transition={{ duration: 0.3 }}
-           className="space-y-10">
-            <h1 className="text-4xl font-semibold">Additional Links</h1>
-            <p className="text-xl font-light  mt-4 leading-8">
+          initial={{ opacity: 0, x: "100%" }} // Slide in from the right
+          animate={{ opacity: 1, x: 0 }} // Slide to the center
+          exit={{ opacity: 0, x: "-100%" }} // Slide out to the left
+          transition={{ duration: 0.3 }}
+          
+          className="space-y-10">
+            <h1 className="text-4xl font-semibold">Additional Links </h1>
+            <p className="text-xl font-light mt-4 leading-8">
               Add links to your product&apos;s website, social media, and other
               platforms
             </p>
@@ -594,30 +611,30 @@ const NewProduct = () => {
 
             <div className="mt-10">
               <div className="font-medium flex items-center gap-x-2">
-                <PiTwitterLogoFill className="text-2xl text-gray-600" />
-                <span>Twitter</span>
+                <PiTwitterLogoFill className="text-2xl text-sky-400" />
+                <div>Twitter</div>
               </div>
 
               <input
-                type="text"
-                value={twitter}
-                className="border rounded-md p-2 w-full mt-2 focus:outline-none"
                 placeholder="https://www.twitter.com"
+                type="text"
+                className="border rounded-md p-2 w-full mt-2 focus:outline-none "
+                value={twitter}
                 onChange={handleTwitterChange}
               />
             </div>
 
             <div className="mt-10">
               <div className="font-medium flex items-center gap-x-2">
-                <PiDiscordLogoFill className="text-2xl text-gray-600" />
-                <span>Discord</span>
+                <PiDiscordLogoFill className="text-2xl text-indigo-500" />
+                <div>Discord</div>
               </div>
 
               <input
-                type="text"
-                value={discord}
-                className="border rounded-md p-2 w-full mt-2 focus:outline-none"
                 placeholder="https://www.discord.com"
+                type="text"
+                className="border rounded-md p-2 w-full mt-2 focus:outline-none "
+                value={discord}
                 onChange={handleDiscordChange}
               />
             </div>
@@ -626,16 +643,19 @@ const NewProduct = () => {
 
         {step === 7 && (
           <motion.div 
-           initial={{ opacity: 0, x: "100%" }} // Slide in from the right
-           animate={{ opacity: 1, x: 0 }} // Slide to the center
-           exit={{ opacity: 0, x: "-100%" }} // Slide out to the left
-           transition={{ duration: 0.3 }}
-           className="space-y-10">
+          initial={{ opacity: 0, x: "100%" }} // Slide in from the right
+          animate={{ opacity: 1, x: 0 }} // Slide to the center
+          exit={{ opacity: 0, x: "-100%" }} // Slide out to the left
+          transition={{ duration: 0.3 }}
+          
+          
+          className="space-y-10">
             <h1 className="text-4xl font-semibold"> 🔍 Review and submit</h1>
             <p className="text-xl font-light mt-4 leading-8">
               Review the details of your product and submit it to the world.
               Your product will be reviewed by our team before it goes live.
             </p>
+
             <div className="mt-10 grid grid-cols-2 gap-8">
               <div className="">
                 <div className="font-semibold">Name of the product</div>
@@ -710,16 +730,17 @@ const NewProduct = () => {
 
         {step === 8 && (
           <div className="space-y-10">
-            <div className="text-4xl font-semibold">Congratulations 🎉 </div>
-            <div className="text-xl font-light mt-4 leading-8">
-              Your Product has been submitted successfully submitted. Our team
-              will review it and get back to you soon.
+            <div className="text-4xl font-semibold"> Congratulations 🎉 </div>
+            <div className="text-xl font-light mt-4 leading-8 ">
+              Your product has been successfully submitted. Our team will review
+              it and get back to you soon.
             </div>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col  gap-4">
               <div
                 onClick={handleGoToProducts}
-                className="bg-[#ff6154] text-white py-2 px-4 rounded mt-4 flex w-60 justify-center items-center cursor-pointer"
+                className="bg-[#ff6154] text-white py-2 px-4
+                 rounded mt-4 flex w-60 justify-center items-center cursor-pointer"
               >
                 Go to your products
               </div>
@@ -728,7 +749,8 @@ const NewProduct = () => {
 
               <div
                 onClick={submitAnotherProduct}
-                className="text-[#ff6154] py-2 px-4 rounded mt-4 flex w-60 justify-center items-center cursor-pointer"
+                className="text-[#ff6154] py-2 px-4 rounded mt-4 
+                flex w-60 justify-center items-center cursor-pointer"
               >
                 Submit another product
               </div>
