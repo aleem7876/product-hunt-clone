@@ -18,6 +18,10 @@ const NewProductLayout = async ({
 
   if (!isPremium && products.length === 2) {
     redirect("/");
+  };
+
+  if (!authenticatedUser) {
+    redirect("/")
   }
   return (
     <html lang="en">
