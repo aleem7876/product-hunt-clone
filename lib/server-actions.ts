@@ -35,7 +35,7 @@ export const createProduct = async ({
     const authenticatedUser = await auth();
 
     if (!authenticatedUser) {
-      throw new Error("You must signed in to create a product");
+      throw new Error("You must be signed in to create a product");
     }
 
     const userId = authenticatedUser.user?.id;
@@ -80,54 +80,6 @@ export const createProduct = async ({
     return product;
   } catch (error) {
     console.error(error);
-    return null;
-  }
-};
-
-export const getOwnerProducts = async () => {
-  const authenticatedUser = await auth();
-
-  if (!authenticatedUser) {
-    return [];
-  }
-  
-  const userId = authenticatedUser.user?.id;
-
-  const products = await db.product.findMany({
-    where: {
-      userId,
-    },
-  });
-
-  return products;
-
-}
-
-export const getProductById = async (productId: string) => {
-  try {
-    const product = await db.product.findUnique({
-      where: {
-        id: productId,
-      },
-      include: {
-        categories: true,
-        images: true,
-        comments: {
-          include: {
-            user: true,
-          },
-        },
-        upvotes: {
-          include: {
-            user: true,
-          },
-        },
-      },
-    });
-    return product;
-    
-  } catch (error) {
-    console.log(error);
     return null;
   }
 };
@@ -190,6 +142,7 @@ export const updateProduct = async (
   });
   return product;
 };
+
 export const deleteProduct = async (productId: string) => {
   const authenticatedUser = await auth();
 
@@ -224,8 +177,55 @@ export const deleteProduct = async (productId: string) => {
   return true;
 };
 
+export const getOwnerProducts = async () => {
+  const authenticatedUser = await auth();
+
+  if (!authenticatedUser) {
+    return [];
+  }
+
+  const userId = authenticatedUser.user?.id;
+
+  const products = await db.product.findMany({
+    where: {
+      userId,
+    },
+  });
+
+  return products;
+};
+
+export const getProductById = async (productId: string) => {
+  try {
+    const product = await db.product.findUnique({
+      where: {
+        id: productId,
+      },
+      include: {
+        categories: true,
+        images: true,
+        comments: {
+          include: {
+            user: true,
+          },
+        },
+        upvotes: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    return product;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
 export const getPendingProducts = async () => {
-  const product = await db.product.findMany({
+  const products = await db.product.findMany({
     where: {
       status: "PENDING",
     },
@@ -234,14 +234,15 @@ export const getPendingProducts = async () => {
       images: true,
     },
   });
-  return product;
-}
+
+  return products;
+};
 
 export const activateProduct = async (productId: string) => {
   try {
     const product = await db.product.findUnique({
       where: {
-        id: productId
+        id: productId,
       },
     });
 
@@ -271,10 +272,10 @@ export const activateProduct = async (productId: string) => {
 
     return product;
   } catch (error) {
-    console.error(error)
+    console.error(error);
     return null;
   }
-}
+};
 
 export const rejectProduct = async (productId: string, reason: string) => {
   try {
@@ -329,12 +330,18 @@ export const getActiveProducts = async () => {
       upvotes: {
         include: {
           user: true,
-        }
-      }
+        },
+      },
+    },
+    orderBy: {
+      upvotes: {
+        _count: "desc",
+      },
     },
   });
+
   return products;
-}
+};
 
 export const commentOnProduct = async (
   productId: string,
@@ -400,25 +407,23 @@ export const commentOnProduct = async (
   }
 };
 
-
 export const deleteComment = async (commentId: string) => {
- try {
-  await db.comment.delete({
-    where: {
-      id: commentId
-    },
-  });
-  return true;
- } catch (error) {
-  console.error("Error deleting comment:", error);
-  throw error;
- }
-}
-
+  try {
+    await db.comment.delete({
+      where: {
+        id: commentId,
+      },
+    });
+    return true;
+  } catch (error) {
+    console.error("Error deleting comment:", error);
+    throw error;
+  }
+};
 
 export const upvoteProduct = async (productId: string) => {
   try {
-    const authenticatedUser = await auth ();
+    const authenticatedUser = await auth();
 
     if (
       !authenticatedUser ||
@@ -434,10 +439,10 @@ export const upvoteProduct = async (productId: string) => {
       where: {
         productId,
         userId,
-      }
+      },
     });
 
-    const profilePicture = authenticatedUser.user.image || "";
+    const profilePicture = authenticatedUser.user.image || ""; // Use an empty string if profile picture is undefined
 
     if (upvote) {
       await db.upvote.delete({
@@ -449,7 +454,7 @@ export const upvoteProduct = async (productId: string) => {
       await db.upvote.create({
         data: {
           productId,
-          userId
+          userId,
         },
       });
 
@@ -461,24 +466,25 @@ export const upvoteProduct = async (productId: string) => {
           userId: true,
         },
       });
+
       // notify the product owner about the upvote
 
       if (productOwner && productOwner.userId !== userId) {
         await db.notification.create({
           data: {
             userId: productOwner.userId,
-            body: "Upvoted your product",
+            body: `Upvoted your product`,
             profilePicture: profilePicture,
             productId: productId,
             type: "UPVOTE",
-            status: "UNREAD"
+            status: "UNREAD",
           },
         });
       }
     }
     return true;
   } catch (error) {
-    console.error("Error upvoting your product:", error);
+    console.error("Error upvoting product:", error);
     throw error;
   }
 };
@@ -498,12 +504,12 @@ export const getUpvotedProducts = async () => {
     const userId = authenticatedUser.user.id;
 
     const upvotedProducts = await db.upvote.findMany({
-      where : {
-        userId
+      where: {
+        userId,
       },
       include: {
-        product: true
-      }
+        product: true,
+      },
     });
 
     return upvotedProducts.map((upvote) => upvote.product);
@@ -511,13 +517,13 @@ export const getUpvotedProducts = async () => {
     console.error("Error getting upvoted products:", error);
     return [];
   }
-}
+};
 
 export const getProductBySlug = async (slug: string) => {
   try {
     const product = await db.product.findUnique({
       where: {
-        slug
+        slug,
       },
       include: {
         images: true,
@@ -530,29 +536,30 @@ export const getProductBySlug = async (slug: string) => {
         upvotes: {
           include: {
             user: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
     return product;
   } catch (error) {
     console.error("Error getting product by slug:", error);
     return null;
   }
-}
+};
 
 export const getCategories = async () => {
   const categories = await db.category.findMany({
     where: {
       products: {
         some: {
-          status: "ACTIVE"
-          }
-        }
-      }
-  })
+          status: "ACTIVE",
+        },
+      },
+    },
+  });
+
   return categories;
-}
+};
 
 export const getProductsByCategoryName = async (category: string) => {
   const products = await db.product.findMany({
@@ -566,7 +573,7 @@ export const getProductsByCategoryName = async (category: string) => {
     },
   });
   return products;
-}
+};
 
 export const getRankById = async (): Promise<
   {
@@ -619,29 +626,30 @@ export const getNotifications = async () => {
       !authenticatedUser.user ||
       !authenticatedUser.user.id
     ) {
-      throw new Error("User ID is missing or invalid")
+      throw new Error("User ID is missing or invalid");
     }
 
     const userId = authenticatedUser.user.id;
 
     const notifications = await db.notification.findMany({
       where: {
-        userId
+        userId,
       },
       orderBy: {
         createdAt: "desc",
-      }
+      },
     });
 
-    if (notifications.length === 0 ) {
+    if (notifications.length === 0) {
       return null;
     }
+
     return notifications;
   } catch (error) {
     console.error("Error getting notifications:", error);
     return [];
   }
-}
+};
 
 export const markAllNotificationsAsRead = async () => {
   try {
@@ -652,7 +660,7 @@ export const markAllNotificationsAsRead = async () => {
       !authenticatedUser.user ||
       !authenticatedUser.user.id
     ) {
-      throw new Error("UserID is missing or invalid");
+      throw new Error("User ID is missing or invalid");
     }
 
     const userId = authenticatedUser?.user.id;
@@ -662,14 +670,14 @@ export const markAllNotificationsAsRead = async () => {
         userId,
       },
       data: {
-        status: "READ"
-      }
-    })
+        status: "READ",
+      },
+    });
   } catch (error) {
-    console.error("Error making all notification as read:", error);
+    console.error("Error marking all notifications as read:", error);
     throw error;
   }
-}
+};
 
 export const searchProducts = async (query: string) => {
   const products = await db.product.findMany({
@@ -679,13 +687,13 @@ export const searchProducts = async (query: string) => {
         mode: "insensitive",
       },
       status: "ACTIVE",
-    }
+    },
   });
 
   return products;
-}
+};
 
-export const getProductsByUserId = async (userId: string)  =>  {
+export const getProductsByUserId = async (userId: string) => {
   const products = await db.product.findMany({
     where: {
       userId,
@@ -693,10 +701,9 @@ export const getProductsByUserId = async (userId: string)  =>  {
   });
 
   return products;
-}
+};
 
 export const isUserPremium = async () => {
-
   const authenticatedUser = await auth();
 
   if (
@@ -704,7 +711,7 @@ export const isUserPremium = async () => {
     !authenticatedUser.user ||
     !authenticatedUser.user.id
   ) {
-    throw new Error("User ID is missing or invalid")
+    throw new Error("User ID is missing or invalid");
   }
 
   const userId = authenticatedUser.user.id;
@@ -714,7 +721,7 @@ export const isUserPremium = async () => {
   const user = await db.user.findUnique({
     where: {
       id: userId,
-    }
+    },
   });
 
   if (!user) {
@@ -722,38 +729,40 @@ export const isUserPremium = async () => {
   }
 
   return user.isPremium;
-}
+};
+
 
 export const getRejectedProducts = async () => {
   const products = await db.product.findMany({
     where: {
-      status: "REJECTED"
+      status: "REJECTED",
     },
     include: {
       categories: true,
       images: true,
     },
   });
+
   return products;
 }
+
 
 export const getUsers = async () => {
   const users = await db.user.findMany();
 
   return users;
-} 
+}
 
 export const getTotalUpvotes = async () => {
   const totalUpvotes = await db.upvote.count({
     where: {
       product: {
-        status: "ACTIVE"
+        status: "ACTIVE",
       },
     },
   });
-
   return totalUpvotes;
-}
+};
 
 export const getAdminData = async () => {
   const totalProducts = await db.product.count();
@@ -768,5 +777,5 @@ export const getAdminData = async () => {
     totalUpvotes,
     totalComments,
     totalCategories,
-  }
+  };
 }
