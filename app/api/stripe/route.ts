@@ -4,41 +4,47 @@ import Stripe from "stripe";
 
 import { db } from "@/lib/db";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2024-06-20",
-});
-const webhookSigningSecret = process.env
-  .STRIPE_WEBHOOK_SIGNING_SECRET as string;
+const stripe = new Stripe(
+    process.env.STRIPE_SECRET_KEY as string, {
+        apiVersion: "2024-06-20"
+    }
+);
+
+const webhookSigningSecret = process.env.STRIPE_WEBHOOK_SIGNING_SECRET as string;
 
 const handlePremiumSubscription = async (event: Stripe.Event) => {
-  const session = event.data.object as Stripe.Checkout.Session;
-  const email = session.customer_email;
+    const session = event.data.object as Stripe.Checkout.Session;
 
-  //find the user by the email
+    const email = session.customer_email
 
-  if (!email) {
-    return;
-  }
+    // find the user by email
 
-  // find the user by the email and then update the isPremium field to true
+    if(!email) {
+        return ;
+    }
 
-  const user = await db.user.findFirst({
-    where: {
-      email: email,
-    },
-  });
+    // find the user by email and then update the ispremium field to true
 
-  if (user) {
-    await db.user.update({
-      where: { id: user.id },
-      data: { isPremium: true },
+    const user = await db.user.findFirst({
+        where: {
+            email: email,
+        },
     });
-    console.log(`✅ User ${email} updated to premium.`);
-  } else {
-    console.log(`❌ User ${email} not found.`);
-  }
-};
 
+    if (user) {
+        await db.user.update({
+            where: {
+                id: user.id
+            },
+            data: {
+                isPremium: true
+            }
+        })
+        console.log(` ✅User ${user.id} is now premium.`)
+    } else {
+        console.log(`❌ User ${email} not found.`)
+    }
+}
 
 const handleCancelledSubscription = async (event: Stripe.Event) => {
     const subscription = event.data.object as Stripe.Subscription;
@@ -80,44 +86,38 @@ const handleCancelledSubscription = async (event: Stripe.Event) => {
     }
   };
 
+export async function POST( req: NextRequest ) {
+    const body = await req.text()
 
+    const signature = req.headers.get("stripe-signature") as string
 
+    let event: Stripe.Event
+    
+    try {
+        event = stripe.webhooks.constructEvent(
+            body, 
+            signature, 
+            webhookSigningSecret
+        )
+    } catch (error: any) {
+        console.log(`❌ Error message: ${error.message}`);
+        return new NextResponse(`❌ Webhook Error: ${error.message}`, {
+            status: 400
+        })
+    }
 
+    console.log(`🔔 Webhook recieved: ${event.id}: ${event.type}`);
 
+    // handle create subscription
 
-
-
-export async function POST(req: NextRequest) {
-  const body = await req.text();
-  const signature = req.headers.get("stripe-signature") as string;
-
-  let event: Stripe.Event;
-
-  try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      webhookSigningSecret
-    );
-  } catch (error: any) {
-    console.log(`❌ Error message: ${error.message}`);
-    return new NextResponse(`❌ Webhook Error: ${error.message}`, {
-      status: 400,
-    });
-  }
-
-  console.log(`🔔 Webhook received: ${event.id}: ${event.type}`);
-
-  // handle create subscription
-
-  if (event.type === "checkout.session.completed") {
-    await handlePremiumSubscription(event);
-  }
+    if (event.type === "checkout.session.completed") {
+        await handlePremiumSubscription(event)
+    };
 
     // Handle Cancelled subscription
     if (event.type === "customer.subscription.deleted") {
         await handleCancelledSubscription(event);
       }
 
-  return new NextResponse(null, { status: 200 });
+    return new NextResponse(null, { status: 200 })
 }
