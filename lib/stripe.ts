@@ -3,11 +3,12 @@
 import Stripe from "stripe";
 import { auth } from "@/auth";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+const stripe = new Stripe(
+  process.env.STRIPE_SECRET_KEY as string,
+);
+const priceId = "price_1PLqVaKEOSg8ptCxWHkkumTe";
 
-const priceId =  "price_1PYmwaEzB013hamQY4X6NTpP";
-
-// Create a function to generate a checkout link
+// Create a function to generate checkout link
 export const createCheckoutSession = async ({ email }: { email: string }) => {
   try {
     const session = await stripe.checkout.sessions.create({
@@ -20,59 +21,63 @@ export const createCheckoutSession = async ({ email }: { email: string }) => {
         },
       ],
       mode: "subscription",
-      success_url: `https://product-hunt-clone-rvsr.vercel.app/new-product`,
-      cancel_url: `https://product-hunt-clone-rvsr.vercel.app/`,
+      success_url: `https://localhost/3000/new-product`,
+      cancel_url: `https://localhost/3000`,
     });
 
     return { url: session.url };
   } catch (error) {
-    console.log(error);
-    throw new Error("Error creating checkout session");
+    console.error("Stripe error:", error);
+    throw new Error("Failed to create checkout session");
   }
 };
 
-// create a function to get a curstomer portal link
-
+// Create a function to get customer portal link
 export const createCustomerLink = async () => {
-  try {
-    const authenticatedUser = await auth();
 
-    if (
-      !authenticatedUser ||
-      !authenticatedUser.user ||
-      !authenticatedUser.user.email
-    ) {
+
+  try {
+
+    const authenticatedUser = await auth()
+
+    if (!authenticatedUser || !authenticatedUser.user || !authenticatedUser.user.email) {
       throw new Error("User not authenticated");
     }
 
     const email = authenticatedUser.user.email;
-    console.log(email, "email");
+
+    console.log(email, 'email')
+
+
 
     const customers = await stripe.customers.list({
       email: email,
     });
 
-    if (!customers || customers.data.length === 0) {
-      throw new Error("Customer not found");
-    }
+    if (!customers || customers.data.length == 0) {
+       throw new Error("Customer not found");
+     }
 
     const customer = customers.data[0];
 
-    if (!customer || !customer.id) {
+   if (!customer || !customer.id) {
       throw new Error("Customer not found");
     }
 
     const portal = await stripe.billingPortal.sessions.create({
       customer: customer.id,
-      return_url: `https://product-hunt-clone-rvsr.vercel.app/`,
+      return_url: `https://localhost/3000/my-products`,
     });
 
     return portal.url;
   } catch (error) {
-    console.log(error, "stripe error:");
-    throw new Error("Error creating customer portal link");
+
+    console.error("Stripe error:", error);
+
+    throw new Error("Customer not found");
   }
 };
+
 
 export const getNextPaymentDetails = async () => {
   try {
@@ -131,5 +136,3 @@ export const getNextPaymentDetails = async () => {
     return null;
   }
 };
-
-
